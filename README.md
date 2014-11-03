@@ -1,45 +1,40 @@
 ## Smart Alarm
 
 Smart Alarm is a home security application for the
-[SmartThings](http://fbuy.me/bb9pe) home automation system. You can configure
-up to 16 security zones and assign any number of contact, motion, moisture and
-smoke sensors to each zone.
+[SmartThings](http://fbuy.me/bb9pe) home automation system.
 
 
 ### Features
 
-* Up to 16 independent security zones.
-* Unlimited number of sensors (contact, motion, moisture or smoke) per zone.
 * Two arming modes - Away and Stay.
-* Optional entry and exit delays.
-* Zones can be designated as Interior (armed in Away mode only) Exterior
-(armed in both Away and Stay modes) and Alert (always armed).
-* Zone bypass allows quickly exclude select zones.
+* Unlimited number of sensors (contact, motion, moisture or smoke).
+* Each sensor represents a security zone that be designated as Exterior (armed
+in both Away and Stay modes), Interior (armed in Away mode only), Alert
+(always armed) and Entrance (same as Exterior, but allows entry with delayed
+alarm).
+* Optional entry delay for Entrance zones.
+* Zone bypass allows quickly exclude selected zones.
 * When alarm is set off, Smart Alarm can execute selected 'Hello, Home'
 action, turn on sirens and light switches, send push notifications and text
 messages.
 * Silent mode disables sirens and switches, but leaves push notifications and
 text messages on.
-* Built-in control panel buttons - 'Arm Away', 'Arm Stay, 'Disarm' and
-'Panic'.
 
 
 ### Arming and Disarming
 
 Smart Alarm can be armed and disarmed in several different ways:
 
-1. Using built-in control panel buttons. Note, that currently control panel
-buttons are only available in iOS (iPhone) mobile app.
-2. Using a remote control, such as
-[Aeon Labs Minimote](http://www.amazon.com/Aeon-Labs-DSA03202-v1-Minimote/dp/B00KU7ERAW)
-3. By assigning home 'Modes'. For example, you can configure Smart Alarm to
+1. By assigning home 'Modes'. For example, you can configure Smart Alarm to
 arm in Away mode when the home Mode is set to 'Away', to arm in Stay mode when
 the home Mode is set to 'Night' and disarm when the home Mode is set to 'Home'.
 Using home Mode to arm and disarm Smart Alarm is a very flexible and powerful
 technique because home modes can be changed by other Smart Apps and 'Hello,
 Home' actions. For example, 'Good Night!' action activates the 'Night' mode,
 thus automatically arming Smart Alarm in Stay mode.
-4. Using REST API endpoints. Smart Alarm provides REST endpoints to allow any
+2. Using a remote control, such as
+[Aeon Labs Minimote](http://www.amazon.com/Aeon-Labs-DSA03202-v1-Minimote/dp/B00KU7ERAW)
+3. Using REST API endpoints. Smart Alarm provides REST endpoints to allow any
 web client to arm, disarm and trigger panic alarm using HTTP GET request. This
 feature can be used to integrate Smart Alarm into variety of Web dashboards
 and remote control web apps.
@@ -47,9 +42,7 @@ and remote control web apps.
 
 ### Screenshots
 
-![Smart Alarm Screenshot 1](http://statusbits.github.io/images/SmartAlarm-01.jpg)
-
-![Smart Alarm Screenshot 2](http://statusbits.github.io/images/SmartAlarm-02.jpg)
+Will be available soon....
 
 
 ### Using REST API
@@ -89,25 +82,36 @@ Smart Apps in [SmartThings IDE](https://graph.api.smartthings.com).
 1. Go to "My SmartApps" section and click on the "+ New SmartApp" button on the
 right.
 2. On the "New SmartApp" page, fill out mandatory "Name" and "Description"
-fields (it does not matter what you put there), then click the "Create" button
-at the bottom.
-3. When a new app template opens in the IDE, click on the "Browse SmartApps"
+fields (it does not matter what you put there).
+3. Make sure to enable OAuth in the application settings.
+4. Click the "Create" button at the bottom.
+5. When a new app template opens in the IDE, click on the "Browse SmartApps"
 drop-down list in the upper right corner and select "Browse Shared SmartApps".
 A list of shared SmartApps will appear on the left side of the editor window.
-4. Scroll down to "Safety & Security" section and click on it.
-5. Select "Smart Alarm" app from the list and click the red "Overwrite" button
+6. Scroll down to "Safety & Security" section and click on it.
+7. Select "Smart Alarm" app from the list and click the red "Overwrite" button
 in the bottom right corner.
-6. Click the blue "Save" button above the editor window.
-7. Click the "Publish" button next to it and select "For Me". You have now
+8. Click the blue "Save" button above the editor window.
+9. Click the "Publish" button next to it and select "For Me". You have now
 self-published your SmartApp.
-8. Open SmartThings mobile app on iPhone or Android and go to the Dashboard.
-9. Tap on the round "+" button and navigate to "My Apps" section by swiping
+10. Open SmartThings mobile app on iPhone or Android and go to the Dashboard.
+11. Tap on the round "+" button and navigate to "My Apps" section by swiping
 the menu ribbon all the way to the left.
-10. "Smart Alarm" app should be available in the list of SmartApps that
+12. "Smart Alarm" app should be available in the list of SmartApps that
 appears below the menu ribbon. Tap it and follow setup instructions.
 
 
 ### Revision History
+
+**Version 2.0.0. Released 2014-11-02**
+* Simplified zone management. Each sensor is now treated as a separate
+zone. The number of zones (sensors) is unlimited.
+* New 'Entrance' zone type. Entry delay now only affects Entrance zones.
+* Exit delay is eliminated.
+* Removed buttons (Arm, Disarm, Panic) from the control panel pending
+UI button implementation on Android platform.
+* Refactored arming/disarming logic to work around event unsubscribtion
+errors that started after SmartThings backend upgrade.
 
 **Version 1.2.1. Released 2014-09-22**
 * Fixed Issue #11 - Entry/Exit delays configuration changes are not applied.
