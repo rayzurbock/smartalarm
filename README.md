@@ -103,6 +103,16 @@ appears below the menu ribbon. Tap it and follow setup instructions.
 
 ### Revision History
 
+**Version 2.1.0. Released 2014-11-04**
+* Added voice notifications using devices with 'Speech Synthesis' capability.
+Currently, implemented only in the
+[VLC Thing](https://github.com/statusbits/smartthings-vlc), as far as I know.
+* New notification options. You can now select notification options for alarm
+notifications and status change separately.
+* Increased the number for telephone numbers used for SMS notifications from
+two to four.
+* Fixed broken push notifications.
+
 **Version 2.0.0. Released 2014-11-02**
 * Simplified zone management. Each sensor is now treated as a separate
 zone. The number of zones (sensors) is unlimited.
