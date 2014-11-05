@@ -103,6 +103,14 @@ appears below the menu ribbon. Tap it and follow setup instructions.
 
 ### Revision History
 
+**Version 2.2.0. Released 2014-11-05**
+* Exit delay is back. Note that the exit delay applies only to the Entrance
+zones and only when arming in Away mode.
+* Added voice notifications for the state changes (armed/disarmed).
+* If the notification phrase is not entered then a default phrase will be
+used.
+* Moved voice configuration to "Notification Options" page
+
 **Version 2.1.0. Released 2014-11-04**
 * Added voice notifications using devices with 'Speech Synthesis' capability.
 Currently, implemented only in the

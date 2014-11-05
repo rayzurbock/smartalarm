@@ -27,7 +27,7 @@
  *  The latest version of this file can be found on GitHub at:
  *  https://github.com/statusbits/smartalarm/
  *
- *  Version 2.1.0 (2014-11-04)
+ *  Version 2.2.0 (2014-11-05)
  */
 
 import groovy.json.JsonSlurper
@@ -351,6 +351,11 @@ def pageAlarmSettings() {
         "zones are not armed in Stay mode, allowing you to freely move " +
         "inside your home."
 
+    def helpExitDelay =
+        "Exit delay allows you to arm the alarm and exit the premises " +
+        "through one of the Entrance zones within specified period of time " +
+        "without setting off an alarm. Exit delay applies only in Away mode."
+
     def helpEntryDelay =
         "Entry delay allows you to enter the premises when Smart Alarm is " +
         "armed and disarm it within specified time without setting off an " +
@@ -359,9 +364,6 @@ def pageAlarmSettings() {
     def helpAlarm =
         "When an alarm is set off, Smart Alarm can turn on sirens and light" +
         "switches and/or execute a 'Hello, Home' action."
-
-    def helpSpeech =
-        "Smart Alarm can also speak using text-to-speech synthesis."
 
     def helpSilent =
         "Enable Silent mode if you wish to temporarily disable sirens and " +
@@ -390,6 +392,15 @@ def pageAlarmSettings() {
         title:          "Disarm in these Modes",
         multiple:       true,
         required:       false
+    ]
+
+    def inputExitDelay = [
+        name:           "exitDelay",
+        type:           "enum",
+        metadata:       [values:["0","15","30","45","60"]],
+        title:          "Exit delay (in seconds)",
+        defaultValue:   "30",
+        required:       true
     ]
 
     def inputEntryDelay = [
@@ -440,27 +451,14 @@ def pageAlarmSettings() {
         uninstall:  state.installed
     ]
 
-    def inputSpeechText = [
-        name:           "speechText",
-        type:           "text",
-        title:          "Speak this phrase",
-        required:       false
-    ]
-
-    def inputSpeechSynth = [
-        name:           "speechSynth",
-        type:           "capability.speechSynthesis",
-        title:          "Using these text-to-speech devices",
-        multiple:       true,
-        required:       false
-    ]
-
     return dynamicPage(pageProperties) {
         section {
             paragraph helpArming
             input inputAwayModes
             input inputStayModes
             input inputDisarmModes
+            paragraph helpExitDelay
+            input inputExitDelay
             paragraph helpEntryDelay
             input inputEntryDelay
         }
@@ -472,11 +470,6 @@ def pageAlarmSettings() {
             paragraph helpSilent
             input inputSilent
         }
-        section("Text-to-Speech") {
-            paragraph helpSpeech
-            input inputSpeechText
-            input inputSpeechSynth
-        }
     }
 }
 
@@ -484,21 +477,45 @@ def pageAlarmSettings() {
 def pageNotifications() {
     TRACE("pageNotifications()")
 
-    def helpPhones =
-        "Smart Alarm can send SMS (text) messages to up to four telephone " +
-        "numbers whenever it is armed, disarmed or when an alarm is set off."
+    def helpAbout =
+        "Smart Alarm has multiple ways of notifying you when its armed, " +
+        "disarmed or when an alarm is set off, including Push " +
+        "notifications, SMS (text) messages or voice (text-to-speech) " +
+        "notification."
 
-    def helpNotifyAlarm =
-        "Select how Smart Alarm should notify you when an alarm is set off."
+    def inputPushAlarm = [
+        name:           "pushMessage",
+        type:           "bool",
+        title:          "Notify on Alarm",
+        defaultValue:   true
+    ]
 
-    def helpNotifyStatus =
-        "Select how Smart Alarm should notify you when it's armed or disarmed."
+    def inputPushStatus = [
+        name:           "pushStatusMessage",
+        type:           "bool",
+        title:          "Notify on Status Change",
+        defaultValue:   true
+    ]
 
     def inputPhone1 = [
         name:           "phone1",
         type:           "phone",
         title:          "Phone number #1",
         required:       false
+    ]
+
+    def inputPhone1Alarm = [
+        name:           "smsAlarmPhone1",
+        type:           "bool",
+        title:          "Notify on Alarm",
+        defaultValue:   false
+    ]
+
+    def inputPhone1Status = [
+        name:           "smsStatusPhone1",
+        type:           "bool",
+        title:          "Notify on Status Change",
+        defaultValue:   false
     ]
 
     def inputPhone2 = [
@@ -508,11 +525,39 @@ def pageNotifications() {
         required:       false
     ]
 
+    def inputPhone2Alarm = [
+        name:           "smsAlarmPhone2",
+        type:           "bool",
+        title:          "Notify on Alarm",
+        defaultValue:   false
+    ]
+
+    def inputPhone2Status = [
+        name:           "smsStatusPhone2",
+        type:           "bool",
+        title:          "Notify on Status Change",
+        defaultValue:   false
+    ]
+
     def inputPhone3 = [
         name:           "phone3",
         type:           "phone",
         title:          "Phone number #3",
         required:       false
+    ]
+
+    def inputPhone3Alarm = [
+        name:           "smsAlarmPhone3",
+        type:           "bool",
+        title:          "Notify on Alarm",
+        defaultValue:   false
+    ]
+
+    def inputPhone3Status = [
+        name:           "smsStatusPhone3",
+        type:           "bool",
+        title:          "Notify on Status Change",
+        defaultValue:   false
     ]
 
     def inputPhone4 = [
@@ -522,74 +567,68 @@ def pageNotifications() {
         required:       false
     ]
 
-    def inputAlarmPush = [
-        name:           "pushMessage",
-        type:           "bool",
-        title:          "Send Push notifications",
-        defaultValue:   true
-    ]
-
-    def inputAlarmPhone1 = [
-        name:           "smsAlarmPhone1",
-        type:           "bool",
-        title:          "Send SMS to Phone #1",
-        defaultValue:   false
-    ]
-
-    def inputAlarmPhone2 = [
-        name:           "smsAlarmPhone2",
-        type:           "bool",
-        title:          "Send SMS to Phone #2",
-        defaultValue:   false
-    ]
-
-    def inputAlarmPhone3 = [
-        name:           "smsAlarmPhone3",
-        type:           "bool",
-        title:          "Send SMS to Phone #3",
-        defaultValue:   false
-    ]
-
-    def inputAlarmPhone4 = [
+    def inputPhone4Alarm = [
         name:           "smsAlarmPhone4",
         type:           "bool",
-        title:          "Send SMS to Phone #4",
+        title:          "Notify on Alarm",
         defaultValue:   false
     ]
 
-    def inputStatusPush = [
-        name:           "pushStatusMessage",
+    def inputPhone4Status = [
+        name:           "smsStatusPhone4",
         type:           "bool",
-        title:          "Send Push notifications",
+        title:          "Notify on Status Change",
+        defaultValue:   false
+    ]
+
+    def inputSpeechDevice = [
+        name:           "speechSynth",
+        type:           "capability.speechSynthesis",
+        title:          "Use these text-to-speech devices",
+        multiple:       true,
+        required:       false
+    ]
+
+    def inputSpeechOnAlarm = [
+        name:           "speechOnAlarm",
+        type:           "bool",
+        title:          "Notify on Alarm",
         defaultValue:   true
     ]
 
-    def inputStatusPhone1 = [
-        name:           "smsStatusPhone1",
+    def inputSpeechOnStatus = [
+        name:           "speechOnStatus",
         type:           "bool",
-        title:          "Send SMS to Phone #1",
-        defaultValue:   false
+        title:          "Notify on Status Change",
+        defaultValue:   true
     ]
 
-    def inputStatusPhone2 = [
-        name:           "smsStatusPhone2",
-        type:           "bool",
-        title:          "Send SMS to Phone #2",
-        defaultValue:   false
+    def inputSpeechTextAlarm = [
+        name:           "speechText",
+        type:           "text",
+        title:          "Alarm Phrase",
+        required:       false
     ]
 
-    def inputStatusPhone3 = [
-        name:           "smsStatusPhone3",
-        type:           "bool",
-        title:          "Send SMS to Phone #3",
-        defaultValue:   false
+    def inputSpeechTextArmedAway = [
+        name:           "speechTextArmedAway",
+        type:           "text",
+        title:          "Armed Away Phrase",
+        required:       false
     ]
 
-    def inputStatusPhone4 = [
-        name:           "smsStatusPhone4",
-        type:           "bool",
-        title:          "Send SMS to Phone #4",
-        defaultValue:   false
+    def inputSpeechTextArmedStay = [
+        name:           "speechTextArmedStay",
+        type:           "text",
+        title:          "Armed Stay Phrase",
+        required:       false
+    ]
+
+    def inputSpeechTextDisarmed = [
+        name:           "speechTextDisarmed",
+        type:           "text",
+        title:          "Disarmed Phrase",
+        required:       false
     ]
 
     def pageProperties = [
@@ -601,27 +640,34 @@ def pageNotifications() {
 
     return dynamicPage(pageProperties) {
         section {
-            paragraph helpPhones
+            paragraph helpAbout
+        }
+        section("Push Notifications") {
+            input inputPushAlarm
+            input inputPushStatus
+        }
+        section("SMS (Text) Notifications") {
             input inputPhone1
+            input inputPhone1Alarm
+            input inputPhone1Status
             input inputPhone2
+            input inputPhone2Alarm
+            input inputPhone2Status
             input inputPhone3
+            input inputPhone3Alarm
+            input inputPhone3Status
             input inputPhone4
+            input inputPhone4Alarm
+            input inputPhone4Status
         }
-        section("Alarm Notifications") {
-            paragraph helpNotifyAlarm
-            input inputAlarmPush
-            input inputAlarmPhone1
-            input inputAlarmPhone2
-            input inputAlarmPhone3
-            input inputAlarmPhone4
-        }
-        section("Status Change Notifications") {
-            paragraph helpNotifyStatus
-            input inputStatusPush
-            input inputStatusPhone1
-            input inputStatusPhone2
-            input inputStatusPhone3
-            input inputStatusPhone4
+        section("Voice Notifications") {
+            input inputSpeechDevice
+            input inputSpeechOnAlarm
+            input inputSpeechOnStatus
+            input inputSpeechTextAlarm
+            input inputSpeechTextArmedAway
+            input inputSpeechTextArmedStay
+            input inputSpeechTextDisarmed
         }
     }
 }
@@ -730,7 +776,8 @@ private def initialize() {
     state.restEndpoint = "https://graph.api.smartthings.com/api/smartapps/installations/${app.id}"
     getAccessToken()
 
-    state.entryDelay = settings.entryDelay ? settings.entryDelay.toInteger() : 0
+    state.exitDelay = settings.exitDelay?.toInteger() ?: 0
+    state.entryDelay = settings.entryDelay?.toInteger() ?: 0
     state.offSwitches = []
 
     if (settings.awayModes?.contains(location.mode)) {
@@ -886,9 +933,17 @@ def resetPanel() {
             it.armed = true
         } else if (it.interior) {
             it.armed = state.armed && !state.stay
+        } else if (it.entrance) {
+            it.armed = state.armed && (state.stay || state.exitDelay == 0)
         } else {
             it.armed = state.armed
         }
+    }
+
+    // Schedule delayed arming of Entrance zones
+    if (state.armed && !state.stay && state.exitDelay) {
+        unschedule()
+        myRunIn(state.exitDelay, armEntranceZones)
     }
 
     // Send notification
@@ -901,6 +956,7 @@ def resetPanel() {
     }
 
     notify(msg)
+    notifyVoice()
 }
 
 private def onZoneEvent(evt, sensorType) {
@@ -1003,6 +1059,18 @@ def disarm() {
     }
 }
 
+def armEntranceZones() {
+    TRACE("armEntranceZones()")
+
+    if (state.armed) {
+        state.zones.each() {
+            if (it.entrance && !it.bypass) {
+                it.armed = true
+            }
+        }
+    }
+}
+
 def panic() {
     TRACE("panic()")
 
@@ -1086,11 +1154,7 @@ def activateAlarm() {
         }
     }
     notify(msg)
-
-    // Text-to-speech
-    if (settings.speechSynth && settings.speechText) {
-        settings.speechSynth*.speak(settings.speechText)
-    }
+    notifyVoice()
 
     // Schedule panel reset in 3 minutes
     // See Issue #1.
@@ -1107,7 +1171,7 @@ private def notify(msg) {
     }
 
     if (state.alarm) {
-        // Send alarm notification
+        // Alarm notification
         if (settings.pushMessage) {
             sendPush(msg)
         } else {
@@ -1130,7 +1194,7 @@ private def notify(msg) {
             sendSms(phone4, msg)
         }
     } else {
-        // Send status change notification
+        // Status change notification
         if (settings.pushStatusMessage) {
             sendPush(msg)
         } else {
@@ -1153,6 +1217,63 @@ private def notify(msg) {
             sendSms(phone4, msg)
         }
     }
+}
+
+private def notifyVoice() {
+    TRACE("notifyVoice()")
+
+    if (!settings.speechSynth || state._init_) {
+        return
+    }
+
+    def phrase = null
+    if (state.alarm) {
+        // Alarm notification
+        if (settings.speechOnAlarm) {
+            phrase = settings.speechText ?: getStatusPhrase()
+        }
+    } else {
+        // Status change notification
+        if (settings.speechOnStatus) {
+            if (state.armed) {
+                if (state.stay) {
+                    phrase = settings.speechTextArmedStay ?: getStatusPhrase()
+                } else {
+                    phrase = settings.speechTextArmedAway ?: getStatusPhrase()
+                }
+            } else {
+                phrase = settings.speechTextDisarmed ?: getStatusPhrase()
+            }
+        }
+    }
+
+    if (phrase) {
+        settings.speechSynth*.speak(phrase)
+    }
+}
+
+private def getStatusPhrase() {
+    TRACE("getStatusPhrase()")
+
+    def phrase = ""
+    if (state.alarm) {
+        phrase = "Alarm at ${location.name}!"
+        state.zones.each() {
+            if (it.alarm) {
+                phrase += " In zone ${it.alarm}."
+            }
+        }
+    } else {
+        phrase = "${location.name} alarm is "
+        if (state.armed) {
+            def mode = state.stay ? "stay" : "away"
+            phrase += "armed in ${mode} mode."
+        } else {
+            phrase += "disarmed."
+        }
+    }
+
+    return phrase
 }
 
 private def getHelloHomeActions() {
@@ -1216,6 +1337,8 @@ private def getAccessToken() {
 }
 
 private def myRunIn(delay_s, func) {
+    TRACE("myRunIn(${delay_s})")
+
     if (delay_s > 0) {
         def tms = now() + (delay_s * 1000)
         def date = new Date(tms)
@@ -1225,7 +1348,7 @@ private def myRunIn(delay_s, func) {
 }
 
 private def textVersion() {
-    def text = "Version 2.1.0"
+    def text = "Version 2.2.0"
 }
 
 private def textCopyright() {
