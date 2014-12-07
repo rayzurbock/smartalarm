@@ -10,9 +10,9 @@ Smart Alarm is a home security application for the
 * Unlimited number of sensors (contact, motion, moisture or smoke).
 * Each sensor represents a security zone that be designated as Exterior (armed
 in both Away and Stay modes), Interior (armed in Away mode only), Alert
-(always armed) and Entrance (same as Exterior, but allows entry with delayed
-alarm).
-* Optional entry delay for Entrance zones.
+(always armed) and Entrance (same as Exterior, but uses entry and exit
+delays).
+* Optional entry and exit delays for the Entrance zones.
 * Zone bypass allows quickly exclude selected zones.
 * When alarm is set off, Smart Alarm can execute selected 'Hello, Home'
 action, turn on sirens and light switches, send push notifications and text
@@ -42,7 +42,7 @@ and remote control web apps.
 
 ### Screenshots
 
-Will be available soon....
+Coming soon....
 
 
 ### Using REST API
@@ -102,6 +102,18 @@ appears below the menu ribbon. Tap it and follow setup instructions.
 
 
 ### Revision History
+
+**Version 2.2.1. Released 2014-12-06**
+* Added option to disable entry delay in Stay mode.
+* Fixed an issue related to scheduling delayed actions.
+
+**Version 2.2.0. Released 2014-11-05**
+* Exit delay is back. Note that the exit delay applies only to the Entrance
+zones and only when arming in Away mode.
+* Added voice notifications for the state changes (armed/disarmed).
+* If the notification phrase is not entered then a default phrase will be
+used.
+* Moved voice configuration to "Notification Options" page
 
 **Version 2.1.0. Released 2014-11-04**
 * Added voice notifications using devices with 'Speech Synthesis' capability.
