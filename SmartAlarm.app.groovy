@@ -2,8 +2,13 @@
  *  Smart Alarm.
  *
  *  Smart Alarm turns SmartThings into a versatile home security system.
- *  Please visit <https://github.com/statusbits/smartalarm/> for more
+ *  Please visit <https://github.com/statusbits/smartalarm> for more
  *  information.
+ *
+ *  Version 2.2.1 (2014-12-06)
+ *
+ *  The latest version of this file can be found on GitHub at:
+ *  <https://github.com/statusbits/smartalarm>
  *
  *  --------------------------------------------------------------------------
  *
@@ -21,13 +26,6 @@
  *
  *  You should have received a copy of the GNU General Public License along
  *  with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  --------------------------------------------------------------------------
- *
- *  The latest version of this file can be found on GitHub at:
- *  https://github.com/statusbits/smartalarm/
- *
- *  Version 2.2.0 (2014-11-05)
  */
 
 import groovy.json.JsonSlurper
@@ -109,9 +107,9 @@ def pageSetup() {
             }
         }
         section("Setup Menu") {
+            href "pageAlarmSettings", title:"Alarm Settings", description:"Tap to open"
             href "pageSelectZones", title:"Add/Remove Zones", description:"Tap to open"
             href "pageConfigureZones", title:"Configure Zones", description:"Tap to open"
-            href "pageAlarmSettings", title:"Alarm Settings", description:"Tap to open"
             href "pageNotifications", title:"Notification Options", description:"Tap to open"
             href "pageButtonRemote", title:"Configure Remote Control", description:"Tap to open"
             href "pageAbout", title:"About Smart Alarm", description:"Tap to open"
@@ -353,13 +351,13 @@ def pageAlarmSettings() {
 
     def helpExitDelay =
         "Exit delay allows you to arm the alarm and exit the premises " +
-        "through one of the Entrance zones within specified period of time " +
-        "without setting off an alarm. Exit delay applies only in Away mode."
+        "through one of the Entrance zones without setting off an alarm. " +
+        "Exit delay is not used when arming in Stay mode."
 
     def helpEntryDelay =
         "Entry delay allows you to enter the premises when Smart Alarm is " +
         "armed and disarm it within specified time without setting off an " +
-        "alarm."
+        "alarm. Entry delay can be optionally disabled in Stay mode."
 
     def helpAlarm =
         "When an alarm is set off, Smart Alarm can turn on sirens and light" +
@@ -412,6 +410,13 @@ def pageAlarmSettings() {
         required:       true
     ]
 
+    def inputEntryDelayDisable = [
+        name:           "entryDelayDisable",
+        type:           "bool",
+        title:          "Disable in Stay mode",
+        defaultValue:   false
+    ]
+
     def hhActions = getHelloHomeActions()
     def inputHelloHome = [
         name:           "helloHomeAction",
@@ -457,10 +462,15 @@ def pageAlarmSettings() {
             input inputAwayModes
             input inputStayModes
             input inputDisarmModes
+        }
+        section("Exit Delay") {
             paragraph helpExitDelay
             input inputExitDelay
+        }
+        section("Entry Delay") {
             paragraph helpEntryDelay
             input inputEntryDelay
+            input inputEntryDelayDisable
         }
         section("Alarm Options") {
             paragraph helpAlarm
@@ -500,7 +510,7 @@ def pageNotifications() {
     def inputPhone1 = [
         name:           "phone1",
         type:           "phone",
-        title:          "Phone number #1",
+        title:          "Send to this number",
         required:       false
     ]
 
@@ -521,7 +531,7 @@ def pageNotifications() {
     def inputPhone2 = [
         name:           "phone2",
         type:           "phone",
-        title:          "Phone number #2",
+        title:          "Send to this number",
         required:       false
     ]
 
@@ -542,7 +552,7 @@ def pageNotifications() {
     def inputPhone3 = [
         name:           "phone3",
         type:           "phone",
-        title:          "Phone number #3",
+        title:          "Send to this number",
         required:       false
     ]
 
@@ -563,7 +573,7 @@ def pageNotifications() {
     def inputPhone4 = [
         name:           "phone4",
         type:           "phone",
-        title:          "Phone number #4",
+        title:          "Send to this number",
         required:       false
     ]
 
@@ -646,16 +656,22 @@ def pageNotifications() {
             input inputPushAlarm
             input inputPushStatus
         }
-        section("SMS (Text) Notifications") {
+        section("Text Message (SMS) #1") {
             input inputPhone1
             input inputPhone1Alarm
             input inputPhone1Status
+        }
+        section("Text Message (SMS) #2") {
             input inputPhone2
             input inputPhone2Alarm
             input inputPhone2Status
+        }
+        section("Text Message (SMS) #3") {
             input inputPhone3
             input inputPhone3Alarm
             input inputPhone3Status
+        }
+        section("Text Message (SMS) #4") {
             input inputPhone4
             input inputPhone4Alarm
             input inputPhone4Status
@@ -942,7 +958,6 @@ def resetPanel() {
 
     // Schedule delayed arming of Entrance zones
     if (state.armed && !state.stay && state.exitDelay) {
-        unschedule()
         myRunIn(state.exitDelay, armEntranceZones)
     }
 
@@ -955,6 +970,7 @@ def resetPanel() {
         msg += "Disarmed."
     }
 
+    log.trace msg
     notify(msg)
     notifyVoice()
 }
@@ -974,16 +990,17 @@ private def onZoneEvent(evt, sensorType) {
 
     zone.alarm = evt.displayName
 
+    if (state.alarm) {
+        // already in alarm state
+        return
+    }
+
     // Activate alarm
-    if (!state.alarm) {
-        state.alarm = true
-        if (zone.entrance && state.entryDelay) {
-            // See Issue #1.
-            unschedule()
-            myRunIn(state.entryDelay, activateAlarm)
-        } else {
-            activateAlarm()
-        }
+    state.alarm = true
+    if (zone.entrance && state.entryDelay && !(state.stay && settings.entryDelayDisable)) {
+        myRunIn(state.entryDelay, activateAlarm)
+    } else {
+        activateAlarm()
     }
 }
 
@@ -1033,7 +1050,6 @@ def armAway() {
     state.armed = true
     state.stay = false
     resetPanel()
-    log.trace "Smart Alarm armed in 'Away' mode"
 }
 
 def armStay() {
@@ -1046,7 +1062,6 @@ def armStay() {
     state.armed = true
     state.stay = true
     resetPanel()
-    log.trace "Smart Alarm armed in 'Stay' mode"
 }
 
 def disarm() {
@@ -1055,7 +1070,6 @@ def disarm() {
     if (state.armed) {
         state.armed = false
         resetPanel()
-        log.trace "Smart Alarm disarmed"
     }
 }
 
@@ -1068,6 +1082,9 @@ def armEntranceZones() {
                 it.armed = true
             }
         }
+        def msg = "Entrance zones are armed"
+        log.trace msg
+        notify(msg)
     }
 }
 
@@ -1153,12 +1170,11 @@ def activateAlarm() {
             msg += "\n${it.alarm}"
         }
     }
+    log.trace msg
     notify(msg)
     notifyVoice()
 
     // Schedule panel reset in 3 minutes
-    // See Issue #1.
-    unschedule()
     myRunIn(180, resetPanel)
 }
 
@@ -1343,12 +1359,12 @@ private def myRunIn(delay_s, func) {
         def tms = now() + (delay_s * 1000)
         def date = new Date(tms)
         runOnce(date, func)
-        TRACE("runOnce() scheduled for ${date}")
+        TRACE("'${func}' scheduled to run at ${date}")
     }
 }
 
 private def textVersion() {
-    def text = "Version 2.2.0"
+    def text = "Version 2.2.1"
 }
 
 private def textCopyright() {
@@ -1367,8 +1383,6 @@ private def textLicense() {
         "General Public License for more details.\n\n" +
         "You should have received a copy of the GNU General Public License " +
         "along with this program. If not, see <http://www.gnu.org/licenses/>."
-
-    return text
 }
 
 private def TRACE(message) {
@@ -1376,6 +1390,6 @@ private def TRACE(message) {
 }
 
 private def STATE() {
-    log.trace "settings: ${settings}"
-    log.trace "state: ${state}"
+    //log.trace "settings: ${settings}"
+    //log.trace "state: ${state}"
 }
